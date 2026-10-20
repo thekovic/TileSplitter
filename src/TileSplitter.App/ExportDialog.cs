@@ -18,6 +18,7 @@ public sealed class ExportDialog : Window
         MinWidth = 120
     };
     private readonly TextBox directory = new();
+    private readonly TextBox prefix = new();
     private readonly TextBox quality = new();
     private readonly TextBox background = new();
 
@@ -81,6 +82,7 @@ public sealed class ExportDialog : Window
             }
         };
 
+        Add(panel, "Filename prefix (optional)", prefix);
         Add(panel, "Format", format);
         Add(panel, "JPEG quality (1–100)", quality);
         Add(panel, "Opaque background (#RRGGBB)", background);
@@ -95,11 +97,13 @@ public sealed class ExportDialog : Window
         panel.Children.Add(export);
 
         directory.Text = state.Export.Directory;
+        prefix.Text = state.Export.Prefix;
         format.SelectedItem = state.Export.Format;
         quality.Text = state.Export.JpegQuality.ToString();
         background.Text = state.Export.Background;
 
         directory.TextChanged += (_, _) => Preview();
+        prefix.TextChanged += (_, _) => Preview();
         quality.TextChanged += (_, _) => Preview();
         background.TextChanged += (_, _) => Preview();
         format.SelectionChanged += (_, _) => Preview();
@@ -140,7 +144,12 @@ public sealed class ExportDialog : Window
                 throw new InvalidOperationException("JPEG quality must be a whole number.");
             }
 
-            var settings = new ExportSettings((string) format.SelectedItem, directory.Text, jpegQuality, background.Text);
+            var settings = new ExportSettings(
+                (string) format.SelectedItem,
+                directory.Text,
+                jpegQuality,
+                background.Text,
+                prefix.Text);
             Plan = exporter.Plan(atlas, state with { Export = settings }, projectPath);
             list.ItemsSource = Plan.Items.Select(item =>
                 $"#{item.Id} {item.Name} · {item.Bounds.Width}×{item.Bounds.Height} → {item.Path}"

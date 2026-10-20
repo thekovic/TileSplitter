@@ -71,6 +71,67 @@ public sealed class ExportTests : IDisposable
             Assert.InRange(Math.Abs(output[i] - pixels[i]), 0, format == "JPEG" ? 4 : 0);
     }
     [Fact]
+    public void PrefixAppliesToEveryExportedFilename()
+    {
+        var service = new ImageExporter();
+        var state = State();
+        state = state with
+        {
+            Textures = [state.Textures[0], new(2, "second", "#123456", new(3, 0, 1, 1))],
+            Export = state.Export with { Prefix = "terrain_" }
+        };
+
+        var plan = service.Plan(Fixture(), state, null);
+
+        Assert.Equal(
+            new[] { Path.Combine(dir, "terrain_crop.png"), Path.Combine(dir, "terrain_second.png") },
+            plan.Items.Select(item => item.Path));
+        Assert.Equal("crop", state.Textures[0].Name);
+
+        var result = service.Run(plan, CollisionPolicy.Skip, CancellationToken.None);
+
+        Assert.All(result.Items, item => Assert.Equal("Completed", item.Status));
+        Assert.All(plan.Items, item => Assert.True(File.Exists(item.Path)));
+    }
+
+    [Theory]
+    [InlineData("../")]
+    [InlineData("folder\\")]
+    [InlineData("bad:")]
+    public void InvalidPrefixPreventsExport(string prefix)
+    {
+        var service = new ImageExporter();
+        var state = State();
+        state = state with { Export = state.Export with { Prefix = prefix } };
+
+        var plan = service.Plan(Fixture(), state, null);
+
+        Assert.NotNull(plan.Items[0].Error);
+        Assert.Throws<InvalidDataException>(() => ImageExporter.Preflight(plan));
+        Assert.Empty(Directory.GetFiles(dir));
+    }
+
+    [Fact]
+    public void PrefixedPathsAreCheckedForCollisionsAndProtectedFiles()
+    {
+        var service = new ImageExporter();
+        var state = State();
+        state = state with { Export = state.Export with { Prefix = "terrain_" } };
+        string path = Path.Combine(dir, "terrain_crop.png");
+        File.WriteAllText(path, "prior");
+
+        var plan = service.Plan(Fixture(), state, null);
+
+        Assert.True(plan.Items[0].Exists);
+        Assert.Equal("Skipped", service.Run(plan, CollisionPolicy.Skip, CancellationToken.None).Items[0].Status);
+        Assert.Equal("prior", File.ReadAllText(path));
+        Assert.Contains("overwrite", service.Plan(Fixture(), state, path).Items[0].Error);
+
+        state = state with { Export = state.Export with { Prefix = new string('x', 250) } };
+        Assert.NotNull(service.Plan(Fixture(), state, null).Items[0].Error);
+    }
+
+    [Fact]
     public void FilenameErrorsAndProtectedPaths()
     {
         var service = new ImageExporter();

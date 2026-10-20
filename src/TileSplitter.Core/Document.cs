@@ -54,7 +54,8 @@ public sealed record ExportSettings(
     string Format = "PNG",
     string Directory = "",
     int JpegQuality = 95,
-    string Background = "#FFFFFF");
+    string Background = "#FFFFFF",
+    string Prefix = "");
 
 public sealed record DocumentState(
     int PixelWidth,
@@ -123,7 +124,8 @@ public sealed record DocumentState(
         if (Export.Format is not ("PNG" or "JPEG" or "BMP")
             || Export.JpegQuality is < 1 or > 100
             || !Colors.IsValid(Export.Background)
-            || Export.Directory is null)
+            || Export.Directory is null
+            || Export.Prefix is null)
         {
             throw new InvalidDataException("Invalid export settings.");
         }

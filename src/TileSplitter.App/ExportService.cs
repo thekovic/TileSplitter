@@ -75,8 +75,9 @@ public sealed class ImageExporter : IImageExporter
         var items = state.Textures.Where(texture => texture.Region != null).Select(texture =>
         {
             var region = texture.Region!.Value;
-            string? error = ExportNames.Error(texture.Name);
-            string path = error is null ? Path.Combine(directory, texture.Name + extension) : "";
+            string filename = state.Export.Prefix + texture.Name;
+            string? error = ExportNames.Error(filename);
+            string path = error is null ? Path.Combine(directory, filename + extension) : "";
             if (duplicates.Contains(texture.Name))
             {
                 error = "Duplicate destination name (case-insensitive).";

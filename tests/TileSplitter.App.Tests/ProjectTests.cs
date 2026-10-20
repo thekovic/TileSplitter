@@ -10,6 +10,16 @@ public sealed class ProjectTests : IDisposable
     public void Dispose() => System.IO.Directory.Delete(directory, true);
     static AtlasImage Source() => AtlasImage.Load(Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../pack1.jpg")));
     [Fact]
+    public void ExportPrefixRoundTripsAndDefaultsForOlderProjects()
+    {
+        var settings = new ExportSettings(Prefix: "terrain_");
+        string json = JsonSerializer.Serialize(settings);
+
+        Assert.Equal(settings, JsonSerializer.Deserialize<ExportSettings>(json));
+        Assert.Equal("", JsonSerializer.Deserialize<ExportSettings>("{}")!.Prefix);
+    }
+
+    [Fact]
     public void RoundTripAndChangedOrMissingSource()
     {
         var atlas = Source();
