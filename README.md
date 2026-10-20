@@ -48,10 +48,10 @@ Dialog buttons support Tab, Enter, Escape, and labeled Alt access keys where sho
 ## Self-contained Windows x64 distribution
 
 ```powershell
-dotnet publish src/TileSplitter.App -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+dotnet publish src/TileSplitter.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o artifacts/win-x64-single-file
 ```
 
-Distribute the **entire** `artifacts/win-x64` folder. Launch `TileSplitter.App.exe` on supported Windows 11 x64; a separate .NET install is unnecessary. Do not enable trimming for this WPF application. Atlas files are user inputs and are not bundled automatically.
+Distribute only `artifacts/win-x64-single-file/TileSplitter.App.exe`. Launch it on supported Windows 11 x64; a separate .NET install is unnecessary. Native runtime libraries are bundled into the executable and extracted automatically at launch. Debug symbols are omitted to keep the distribution to one file. Do not enable trimming for this WPF application. Atlas files are user inputs and are not bundled automatically.
 
 ## Verification and limitations
 
