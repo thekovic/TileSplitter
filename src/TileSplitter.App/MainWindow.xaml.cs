@@ -491,7 +491,13 @@ public partial class MainWindow : Window
 
         if (!controlPressed)
         {
-            if (e.Key == Key.F2)
+            if (e.Key == Key.F1)
+            {
+                FlushName();
+                NewTexture(this, e);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.F2)
             {
                 NameBox.Focus();
                 NameBox.SelectAll();

@@ -33,7 +33,7 @@ Export runs in the background and disables document edits. Cancellation occurs b
 | Save / Save As | Ctrl+S / Ctrl+Shift+S |
 | Undo / redo | Ctrl+Z / Ctrl+Y |
 | Export | Ctrl+E |
-| New texture / search | Ctrl+T / Ctrl+F |
+| New texture / search | Ctrl+T or F1 / Ctrl+F |
 | Rename / apply name | F2 / Enter |
 | Change color | Ctrl+Shift+C |
 | Clear region / delete texture | Ctrl+Backspace / Ctrl+Delete |

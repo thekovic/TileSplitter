@@ -104,7 +104,7 @@
                     <Button
                         Content="New Texture"
                         Command="{Binding NewTextureCommand}"
-                        ToolTip="Ctrl+T"
+                        ToolTip="Ctrl+T or F1"
                         Margin="0,8" />
                     <Grid>
                         <TextBox
