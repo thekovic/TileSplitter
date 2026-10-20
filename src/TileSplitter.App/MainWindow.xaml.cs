@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using TileSplitter.Core;
 
 namespace TileSplitter.App;
@@ -13,15 +14,54 @@ public partial class MainWindow : Window
     private readonly EditorViewModel viewModel = new();
     private DocumentState? renderedState;
     private bool busy;
+    private readonly AppSettingsStore settingsStore;
+    private AppSettings settings = new();
+    private bool wasMaximized;
 
-    public MainWindow()
+    public MainWindow() : this(new AppSettingsStore(AppSettingsStore.DefaultPath))
     {
+    }
+
+    internal MainWindow(AppSettingsStore settingsStore)
+    {
+        this.settingsStore = settingsStore;
         InitializeComponent();
         DataContext = viewModel;
         viewModel.PropertyChanged += (_, _) => Sync();
         Viewport.Feedback += text => Feedback.Text = text;
         Closing += OnClosing;
         PreviewKeyDown += Shortcuts;
+        SourceInitialized += (_, _) => RestoreWindowPlacement();
+        StateChanged += (_, _) =>
+        {
+            if (WindowState != WindowState.Minimized)
+            {
+                wasMaximized = WindowState == WindowState.Maximized;
+            }
+        };
+    }
+
+    private void RestoreWindowPlacement()
+    {
+        settings = settingsStore.Load();
+        if (settings.MainWindow is not { IsValid: true } placement)
+        {
+            return;
+        }
+
+        var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        var workAreas = DisplayWorkAreas.Get(source.CompositionTarget.TransformFromDevice);
+        var bounds = placement.FitToWorkAreas(workAreas, MinWidth, MinHeight);
+
+        // Small displays must still accommodate the restored window.
+        MinWidth = Math.Min(MinWidth, bounds.Width);
+        MinHeight = Math.Min(MinHeight, bounds.Height);
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = bounds.Left;
+        Top = bounds.Top;
+        Width = bounds.Width;
+        Height = bounds.Height;
+        WindowState = placement.Maximized ? WindowState.Maximized : WindowState.Normal;
     }
 
     private void Sync()
@@ -481,6 +521,16 @@ public partial class MainWindow : Window
         if (busy || !ConfirmDiscard())
         {
             e.Cancel = true;
+            return;
+        }
+
+        var bounds = RestoreBounds;
+        if (!bounds.IsEmpty)
+        {
+            settingsStore.Save(settings with
+            {
+                MainWindow = new(bounds.Left, bounds.Top, bounds.Width, bounds.Height, wasMaximized)
+            });
         }
     }
 

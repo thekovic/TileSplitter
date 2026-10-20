@@ -2,6 +2,8 @@
 
 A Windows 11 x64 WPF tool for assigning rectangular regions of a texture atlas and exporting individual texture images. Requires the .NET 10 SDK for development; the self-contained distribution includes its runtime.
 
+The main window remembers its size, position, and maximized state between sessions. App preferences are stored per user in `%LOCALAPPDATA%\TileSplitter\settings.json`. If a display is disconnected, the window is moved into an available display's working area. Missing or damaged settings fall back to defaults.
+
 ## Build and run
 
 ```powershell
