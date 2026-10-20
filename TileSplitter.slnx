@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TileSplitter.App/TileSplitter.App.csproj" />
+    <Project Path="src/TileSplitter.Core/TileSplitter.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TileSplitter.App.Tests/TileSplitter.App.Tests.csproj" />
+    <Project Path="tests/TileSplitter.Core.Tests/TileSplitter.Core.Tests.csproj" />
+  </Folder>
+</Solution>

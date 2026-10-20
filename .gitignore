@@ -1,1 +1,6 @@
 *.jpg
+**/bin/
+**/obj/
+.vs/
+artifacts/
+**/TestResults/
