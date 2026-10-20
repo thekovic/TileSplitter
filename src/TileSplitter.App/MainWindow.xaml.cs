@@ -1,9 +1,9 @@
+using Microsoft.Win32;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Win32;
 using TileSplitter.Core;
 namespace TileSplitter.App;
 
@@ -14,32 +14,56 @@ public partial class MainWindow : Window
     bool busy;
     public MainWindow()
     {
-        InitializeComponent(); DataContext = vm; vm.PropertyChanged += (_, _) => Sync(); Viewport.Feedback += text => Feedback.Text = text;
-        Closing += OnClosing; PreviewKeyDown += Shortcuts;
+        InitializeComponent();
+        DataContext = vm;
+        vm.PropertyChanged += (_, _) => Sync();
+        Viewport.Feedback += text => Feedback.Text = text;
+        Closing += OnClosing;
+        PreviewKeyDown += Shortcuts;
     }
     void Sync()
     {
-        if (Viewport.SelectedId != vm.SelectedId || !ReferenceEquals(renderedState, vm.Editor?.State)) Viewport.CancelGesture();
-        renderedState = vm.Editor?.State; Viewport.Editor = vm.Editor; Viewport.Atlas = vm.Atlas; Viewport.SelectedId = vm.SelectedId; Viewport.InvalidateVisual();
+        if (Viewport.SelectedId != vm.SelectedId || !ReferenceEquals(renderedState, vm.Editor?.State))
+            Viewport.CancelGesture();
+        renderedState = vm.Editor?.State;
+        Viewport.Editor = vm.Editor;
+        Viewport.Atlas = vm.Atlas;
+        Viewport.SelectedId = vm.SelectedId;
+        Viewport.InvalidateVisual();
     }
     void Guard(Action action) { try { action(); } catch (Exception ex) { Error(ex); } }
     void Error(Exception ex) => MessageBox.Show(this, ex.Message, "TileSplitter", MessageBoxButton.OK, MessageBoxImage.Error);
     string? Ask(string title, string prompt, string initial) { var d = new InputDialog(this, title, prompt, initial); return d.ShowDialog() == true ? d.Value : null; }
     (int W, int H)? AskGrid(int w = 64, int h = 64)
     {
-        var value = Ask("Tile dimensions", "Enter tile width and height in pixels, separated by a comma.", $"{w},{h}"); if (value is null) return null;
-        var p = value.Split(','); if (p.Length != 2 || !int.TryParse(p[0], out int tw) || !int.TryParse(p[1], out int th) || tw <= 0 || th <= 0) throw new InvalidDataException("Enter two positive whole numbers."); return (tw, th);
+        var value = Ask("Tile dimensions", "Enter tile width and height in pixels, separated by a comma.", $"{w},{h}");
+        if (value is null)
+            return null;
+        var p = value.Split(',');
+        if (p.Length != 2 || !int.TryParse(p[0], out int tw) || !int.TryParse(p[1], out int th) || tw <= 0 || th <= 0)
+            throw new InvalidDataException("Enter two positive whole numbers.");
+        return (tw, th);
     }
     const string ImageFilter = "Atlas images|*.png;*.jpg;*.jpeg;*.bmp";
     async void NewAtlas(object sender, RoutedEventArgs e)
     {
-        if (busy || !ConfirmDiscard()) return;
-        var d = new OpenFileDialog { Filter = ImageFilter }; if (d.ShowDialog(this) != true) return;
+        if (busy || !ConfirmDiscard())
+            return;
+        var d = new OpenFileDialog { Filter = ImageFilter };
+        if (d.ShowDialog(this) != true)
+            return;
         try
         {
-            var grid = AskGrid(); if (grid is null) return; SetBusy(true, "Loading atlas…");
-            var atlas = await Task.Run(() => AtlasImage.Load(d.FileName)); var state = DocumentState.Create(atlas.Bitmap.PixelWidth, atlas.Bitmap.PixelHeight, grid.Value.W, grid.Value.H); state.Validate();
-            vm.Open(atlas, state); Viewport.Fit(); OrientationNotice(atlas);
+            var grid = AskGrid();
+            if (grid is null)
+                return;
+            SetBusy(true, "Loading atlas…");
+            var atlas = await Task.Run(() => AtlasImage.Load(d.FileName));
+            var state = DocumentState.Create(atlas.Bitmap.PixelWidth, atlas.Bitmap.PixelHeight, grid.Value.W, grid.Value.H);
+            state.Validate();
+            vm.Open(atlas, state);
+            Viewport.Fit();
+            OrientationNotice(atlas);
         }
         catch (Exception ex) { Error(ex); }
         finally { SetBusy(false); }
@@ -53,7 +77,7 @@ public partial class MainWindow : Window
     void ActualSize(object s, RoutedEventArgs e) => Viewport.ActualSize();
     void ToggleGrid(object s, RoutedEventArgs e) { Viewport.ShowGrid = !Viewport.ShowGrid; Viewport.InvalidateVisual(); }
     void ToggleLabels(object s, RoutedEventArgs e) { Viewport.ShowLabels = !Viewport.ShowLabels; Viewport.InvalidateVisual(); }
-    void ModeChanged(object s, SelectionChangedEventArgs e) { if (Viewport != null) { Viewport.CancelGesture(); Viewport.Mode = (EditMode)ModeBox.SelectedIndex; } }
+    void ModeChanged(object s, SelectionChangedEventArgs e) { if (Viewport != null) { Viewport.CancelGesture(); Viewport.Mode = (EditMode) ModeBox.SelectedIndex; } }
     void Rename(object s, RoutedEventArgs e) { if (!busy && vm.Selected is { } t && NameBox.Text != t.Name) vm.Editor!.Update(t with { Name = NameBox.Text }); }
     void FlushName() { if (NameBox.IsKeyboardFocusWithin) Rename(NameBox, new RoutedEventArgs()); }
     void NameKey(object s, KeyEventArgs e) { if (e.Key == Key.Enter) { Rename(s, e); Viewport.Focus(); e.Handled = true; } }
@@ -66,14 +90,18 @@ public partial class MainWindow : Window
     {
         FlushName();
         Viewport.CancelGesture();
-        if (vm.Editor?.Dirty != true) return true;
+        if (vm.Editor?.Dirty != true)
+            return true;
         var result = MessageBox.Show(this, "Save changes before closing this project? Projects reference the atlas; they do not embed it.", "Unsaved project", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
         return result == MessageBoxResult.No || result == MessageBoxResult.Yes && Save(false);
     }
     async void OpenProject(object s, RoutedEventArgs e)
     {
-        if (busy || !ConfirmDiscard()) return;
-        var dialog = new OpenFileDialog { Filter = "TileSplitter projects|*.tilesplitter.json" }; if (dialog.ShowDialog(this) != true) return;
+        if (busy || !ConfirmDiscard())
+            return;
+        var dialog = new OpenFileDialog { Filter = "TileSplitter projects|*.tilesplitter.json" };
+        if (dialog.ShowDialog(this) != true)
+            return;
         try
         {
             SetBusy(true, "Opening project…");
@@ -83,52 +111,71 @@ public partial class MainWindow : Window
             if (source is null)
             {
                 var locate = new OpenFileDialog { Title = "Locate missing atlas", Filter = ImageFilter };
-                if (locate.ShowDialog(this) != true) return; source = locate.FileName;
+                if (locate.ShowDialog(this) != true)
+                    return;
+                source = locate.FileName;
             }
             var atlas = await Task.Run(() => AtlasImage.Load(source));
             bool matches = ProjectStore.VerifySource(file, atlas);
-            if (!matches && MessageBox.Show(this, "This atlas has the saved dimensions but its contents have changed. Existing assignments may describe different artwork. Accept this source?", "Changed atlas", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+            if (!matches && MessageBox.Show(this, "This atlas has the saved dimensions but its contents have changed. Existing assignments may describe different artwork. Accept this source?", "Changed atlas", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
             vm.Open(atlas, file.Document, dialog.FileName, matches && string.Equals(source, resolved, StringComparison.OrdinalIgnoreCase));
-            Viewport.Fit(); OrientationNotice(atlas);
+            Viewport.Fit();
+            OrientationNotice(atlas);
         }
         catch (Exception ex) { Error(ex); }
         finally { SetBusy(false); }
     }
     bool Save(bool saveAs)
     {
-        if (busy || vm.Editor is null || vm.Atlas is null) return false;
+        if (busy || vm.Editor is null || vm.Atlas is null)
+            return false;
         FlushName();
         Viewport.CancelGesture();
         string? path = saveAs ? null : vm.ProjectPath;
         if (path is null)
         {
             var d = new SaveFileDialog { Filter = "TileSplitter project|*.tilesplitter.json", DefaultExt = ".tilesplitter.json", FileName = "atlas.tilesplitter.json", Title = "Save project (atlas remains a separate file)" };
-            if (d.ShowDialog(this) != true) return false; path = d.FileName;
+            if (d.ShowDialog(this) != true)
+                return false;
+            path = d.FileName;
         }
-        try { projects.Save(path, vm.Editor.State, vm.Atlas); vm.ProjectPath = path; vm.Editor.MarkSaved(); return true; } catch (Exception ex) { Error(ex); return false; }
+        try
+        { projects.Save(path, vm.Editor.State, vm.Atlas); vm.ProjectPath = path; vm.Editor.MarkSaved(); return true; }
+        catch (Exception ex) { Error(ex); return false; }
     }
     void SaveProject(object s, RoutedEventArgs e) => Save(false);
     void SaveProjectAs(object s, RoutedEventArgs e) => Save(true);
     async void Export(object s, RoutedEventArgs e)
     {
-        if (busy || vm.Editor is null || vm.Atlas is null) return;
+        if (busy || vm.Editor is null || vm.Atlas is null)
+            return;
         Viewport.CancelGesture();
-        var dialog = new ExportDialog(this, vm.Atlas, vm.Editor.State, vm.ProjectPath); if (dialog.ShowDialog() != true || dialog.Plan is not { } plan) return;
+        var dialog = new ExportDialog(this, vm.Atlas, vm.Editor.State, vm.ProjectPath);
+        if (dialog.ShowDialog() != true || dialog.Plan is not { } plan)
+            return;
         var collisions = plan.Items.Where(i => i.Exists).ToArray();
         CollisionPolicy policy = CollisionPolicy.Skip;
         if (collisions.Length > 0)
         {
-            var choice = new CollisionDialog(this, collisions.Select(i => i.Path)); if (choice.ShowDialog() != true) return; policy = choice.Policy;
+            var choice = new CollisionDialog(this, collisions.Select(i => i.Path));
+            if (choice.ShowDialog() != true)
+                return;
+            policy = choice.Policy;
         }
-        if (vm.Editor.State.Export != plan.Settings) vm.Editor.Commit(vm.Editor.State with { Export = plan.Settings });
+        if (vm.Editor.State.Export != plan.Settings)
+            vm.Editor.Commit(vm.Editor.State with { Export = plan.Settings });
         using var cancel = new CancellationTokenSource();
-        var progressWindow = new ExportProgress(this, cancel); progressWindow.Show();
+        var progressWindow = new ExportProgress(this, cancel);
+        progressWindow.Show();
         try
         {
             SetBusy(true, "Exporting…");
             var progress = new Progress<string>(text => { Feedback.Text = text; progressWindow.SetText(text); });
             var result = await Task.Run(() => new ImageExporter().Run(plan, policy, cancel.Token, progress));
-            var report = new ExportReport(this, result); progressWindow.Close(); report.ShowDialog();
+            var report = new ExportReport(this, result);
+            progressWindow.Close();
+            report.ShowDialog();
         }
         catch (Exception ex) { Error(ex); }
         finally { progressWindow.Close(); SetBusy(false); }
@@ -137,7 +184,8 @@ public partial class MainWindow : Window
     void Shortcuts(object s, KeyEventArgs e)
     {
         bool ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control), shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
-        if (!ctrl) { if (e.Key == Key.F2) { NameBox.Focus(); NameBox.SelectAll(); e.Handled = true; } return; }
+        if (!ctrl)
+        { if (e.Key == Key.F2) { NameBox.Focus(); NameBox.SelectAll(); e.Handled = true; } return; }
         Action? action = e.Key switch
         {
             Key.N => () => NewAtlas(this, e),
@@ -162,6 +210,7 @@ public partial class MainWindow : Window
             Key.C when shift => () => ChangeColor(this, e),
             _ => null
         };
-        if (action != null) { FlushName(); action(); e.Handled = true; }
+        if (action != null)
+        { FlushName(); action(); e.Handled = true; }
     }
 }

@@ -40,15 +40,23 @@ public sealed class EditorViewModel : INotifyPropertyChanged
     public void Open(AtlasImage atlas, DocumentState state, string? path = null, bool sourceMatches = true)
     {
         var next = new Editor(state, path != null && sourceMatches);
-        if (Editor != null) Editor.Changed -= Refresh;
-        Atlas = atlas; Editor = next; ProjectPath = path; selectedId = state.Textures.FirstOrDefault()?.Id; Editor.Changed += Refresh; Refresh();
+        if (Editor != null)
+            Editor.Changed -= Refresh;
+        Atlas = atlas;
+        Editor = next;
+        ProjectPath = path;
+        selectedId = state.Textures.FirstOrDefault()?.Id;
+        Editor.Changed += Refresh;
+        Refresh();
     }
     public void NewTexture() { if (Editor is { } e) { selectedId = e.CreateTexture(); Refresh(); } }
     void RefreshSelection() { PropertyChanged?.Invoke(this, new(nameof(Selected))); PropertyChanged?.Invoke(this, new(nameof(SelectedId))); PropertyChanged?.Invoke(this, new(nameof(SelectedDimensions))); CommandManager.InvalidateRequerySuggested(); }
     public void Refresh()
     {
-        if (Editor != null && !Editor.State.Textures.Any(t => t.Id == selectedId)) selectedId = Editor.State.Textures.FirstOrDefault()?.Id;
-        PropertyChanged?.Invoke(this, new("")); CommandManager.InvalidateRequerySuggested();
+        if (Editor != null && !Editor.State.Textures.Any(t => t.Id == selectedId))
+            selectedId = Editor.State.Textures.FirstOrDefault()?.Id;
+        PropertyChanged?.Invoke(this, new(""));
+        CommandManager.InvalidateRequerySuggested();
     }
     public event PropertyChangedEventHandler? PropertyChanged;
 }
