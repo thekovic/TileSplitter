@@ -37,8 +37,8 @@ Export runs in the background and disables document edits. Cancellation occurs b
 | Rename / apply name | F2 / Enter |
 | Change color | Ctrl+Shift+C |
 | Clear region / delete texture | Ctrl+Backspace / Ctrl+Delete |
-| Add / replace / erase mode | Ctrl+2 / Ctrl+3 / Ctrl+4 |
-| Fit / 100% | Ctrl+0 / Ctrl+1 |
+| Add / replace / erase mode | Ctrl+1 / Ctrl+2 / Ctrl+3 |
+| Fit / 100% | Ctrl+, / Ctrl+. |
 | Toggle grid / labels | Ctrl+G / Ctrl+L |
 | Reset tile dimensions (clears regions, undoable) | Ctrl+Shift+G |
 | Cancel gesture / cancel export between textures | Escape |
