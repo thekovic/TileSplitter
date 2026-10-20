@@ -13,65 +13,78 @@
             DockPanel.Dock="Top"
             Margin="6">
             <Button
-                Content="_New / Atlas"
+                Content="_New Project"
                 Click="NewAtlas"
                 ToolTip="Ctrl+N"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="4,0,0.5,0"
+            />
             <Button
                 Content="_Open Project"
                 Click="OpenProject"
                 ToolTip="Ctrl+O"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,4,0" />
             <Button
                 Content="_Save"
                 Click="SaveProject"
                 ToolTip="Ctrl+S"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="4,0,0.5,0" />
             <Button
                 Content="Save _As"
                 Click="SaveProjectAs"
                 ToolTip="Ctrl+Shift+S"
-                Padding="8,4" />
-            <Button
-                Content="_Undo"
-                Command="{Binding UndoCommand}"
-                ToolTip="Ctrl+Z"
-                Padding="8,4" />
-            <Button
-                Content="_Redo"
-                Command="{Binding RedoCommand}"
-                ToolTip="Ctrl+Y"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,0.5,0" />
             <Button
                 Content="_Export"
                 Click="Export"
                 ToolTip="Ctrl+E"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,4,0" />
+            <Button
+                Content="_Undo"
+                Command="{Binding UndoCommand}"
+                ToolTip="Ctrl+Z"
+                Padding="8,4"
+                Margin="4,0,0.5,0" />
+            <Button
+                Content="_Redo"
+                Command="{Binding RedoCommand}"
+                ToolTip="Ctrl+Y"
+                Padding="8,4"
+                Margin="0.5,0,4,0" />
             <Button
                 Content="_Fit"
                 Click="Fit"
                 ToolTip="Ctrl+0"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="4,0,0.5,0" />
             <Button
                 Content="100%"
                 Click="ActualSize"
                 ToolTip="Ctrl+1"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,4,0" />
             <Button
-                Content="Grid"
+                Content="Toggle Grid"
                 Click="ToggleGrid"
                 ToolTip="Ctrl+G"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="4,0,0.5,0" />
             <Button
-                Content="Labels"
+                Content="Toggle Labels"
                 Click="ToggleLabels"
                 ToolTip="Ctrl+L"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,0.5,0" />
             <Button
-                Content="Grid size"
+                Content="Grid Size"
                 Click="GridSize"
                 ToolTip="Ctrl+Shift+G: clears regions (undoable)"
-                Padding="8,4" />
+                Padding="8,4"
+                Margin="0.5,0,4,0" />
         </WrapPanel>
         <StatusBar
             DockPanel.Dock="Bottom">
