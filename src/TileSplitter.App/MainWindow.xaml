@@ -106,11 +106,38 @@
                         Command="{Binding NewTextureCommand}"
                         ToolTip="Ctrl+T"
                         Margin="0,8" />
-                    <TextBox
-                        Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
-                        ToolTip="Search by ID or name (Ctrl+F)"
-                        x:Name="SearchBox"
-                        AutomationProperties.Name="Search textures" />
+                    <Grid>
+                        <TextBox
+                            Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"
+                            ToolTip="Search by ID or name (Ctrl+F)"
+                            x:Name="SearchBox"
+                            AutomationProperties.Name="Search textures" />
+                        <TextBlock
+                            Text="Filter..."
+                            FontStyle="Italic"
+                            Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
+                            Margin="4,2"
+                            VerticalAlignment="Center"
+                            IsHitTestVisible="False">
+                            <TextBlock.Style>
+                                <Style
+                                    TargetType="TextBlock">
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger
+                                            Binding="{Binding Text.Length, ElementName=SearchBox}"
+                                            Value="0">
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                     <TextBlock
                         Text="Assignment mode"
                         Margin="0,10,0,3" />
