@@ -64,32 +64,71 @@ public class WorkflowTests
         vm.Editor.MarkSaved();
         Assert.False(vm.Editor.Dirty);
     }
-    [Fact]
-    public void BoundSidebarSelectionSurvivesRenameAndAssignment() => Sta(() =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BoundSidebarSelectionSurvivesRenameAndAssignment(bool loadedProject) => Sta(() =>
     {
         var window = new MainWindow();
         var vm = (EditorViewModel) window.DataContext;
         var bitmap = BitmapSource.Create(128, 128, 96, 96, PixelFormats.Bgra32, null, new byte[128 * 128 * 4], 512);
         bitmap.Freeze();
-        vm.Open(new("x", bitmap, "", false), DocumentState.Create(128, 128));
+        var editor = new Editor(DocumentState.Create(128, 128));
+        if (loadedProject)
+        {
+            int existingId = editor.CreateTexture();
+            editor.Assign(existingId, new(1, 0, 1, 1), EditMode.Replace);
+        }
+
+        vm.Open(new("x", bitmap, "", false), editor.State, loadedProject ? "saved.tilesplitter.json" : null);
         window.Measure(new Size(1200, 800));
         window.Arrange(new Rect(0, 0, 1200, 800));
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         vm.NewTexture();
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         int id = vm.SelectedId!.Value;
-        vm.Editor!.Update(vm.Selected! with { Name = "renamed" });
+        var sidebar = FindVisualChild<System.Windows.Controls.ListBox>((DependencyObject) window.Content);
+        Assert.Equal(id, Assert.IsType<Texture>(sidebar.SelectedItem).Id);
+
+        vm.Editor!.Assign(id, new(0, 0, 1, 1), EditMode.Replace);
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         Assert.Equal(id, vm.SelectedId);
-        vm.Editor.Assign(id, new(0, 0, 1, 1), EditMode.Replace);
+        Assert.Equal(id, vm.Selected?.Id);
+        Assert.Equal(vm.Selected, sidebar.SelectedItem);
+
+        vm.Editor.Update(vm.Selected! with { Name = "renamed" });
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         Assert.Equal(id, vm.SelectedId);
         vm.NewTexture();
         window.UpdateLayout();
+        window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         Assert.NotEqual(id, vm.SelectedId);
         vm.Editor.MarkSaved();
         window.Close();
     });
+
+    private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, index);
+            if (child is T match)
+            {
+                return match;
+            }
+
+            if (FindVisualChild<T>(child) is { } descendant)
+            {
+                return descendant;
+            }
+        }
+
+        return null!;
+    }
     [Fact]
     public void SuppliedAtlasAssignmentSaveReloadAndExport()
     {

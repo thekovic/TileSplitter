@@ -61,6 +61,7 @@ public sealed class EditorViewModel : INotifyPropertyChanged
 
     private int? selectedId;
     private string search = "";
+    private bool refreshingTextures;
 
     public int? SelectedId => selectedId;
 
@@ -69,6 +70,11 @@ public sealed class EditorViewModel : INotifyPropertyChanged
         get => Editor?.State.Textures.FirstOrDefault(texture => texture.Id == selectedId);
         set
         {
+            if (refreshingTextures)
+            {
+                return;
+            }
+
             selectedId = value?.Id;
             RefreshSelection();
         }
@@ -155,8 +161,24 @@ public sealed class EditorViewModel : INotifyPropertyChanged
             selectedId = Editor.State.Textures.FirstOrDefault()?.Id;
         }
 
-        PropertyChanged?.Invoke(this, new(""));
-        CommandManager.InvalidateRequerySuggested();
+        // Replacing immutable textures can temporarily clear the ListBox selection.
+        // Refresh its items first, then select the current version of the texture.
+        refreshingTextures = true;
+        try
+        {
+            PropertyChanged?.Invoke(this, new(nameof(Textures)));
+        }
+        finally
+        {
+            refreshingTextures = false;
+        }
+
+        RefreshSelection();
+        PropertyChanged?.Invoke(this, new(nameof(Editor)));
+        PropertyChanged?.Invoke(this, new(nameof(Atlas)));
+        PropertyChanged?.Invoke(this, new(nameof(ProjectPath)));
+        PropertyChanged?.Invoke(this, new(nameof(Summary)));
+        PropertyChanged?.Invoke(this, new(nameof(Title)));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
