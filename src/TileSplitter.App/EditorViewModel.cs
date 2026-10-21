@@ -67,7 +67,7 @@ public sealed class EditorViewModel : INotifyPropertyChanged
 
     public Texture? Selected
     {
-        get => Editor?.State.Textures.FirstOrDefault(texture => texture.Id == selectedId);
+        get => refreshingTextures ? null : Editor?.State.Textures.FirstOrDefault(texture => texture.Id == selectedId);
         set
         {
             if (refreshingTextures)
@@ -161,11 +161,12 @@ public sealed class EditorViewModel : INotifyPropertyChanged
             selectedId = Editor.State.Textures.FirstOrDefault()?.Id;
         }
 
-        // Replacing immutable textures can temporarily clear the ListBox selection.
-        // Refresh its items first, then select the current version of the texture.
+        // Clear the old selection before replacing immutable texture records.
+        // WPF can otherwise retain SelectedItem without selecting its new container.
         refreshingTextures = true;
         try
         {
+            PropertyChanged?.Invoke(this, new(nameof(Selected)));
             PropertyChanged?.Invoke(this, new(nameof(Textures)));
         }
         finally

@@ -174,6 +174,14 @@ public partial class MainWindow : Window
         CommandManager.InvalidateRequerySuggested();
     }
 
+    private void TextureSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ListBox list && list.SelectedItem is { } texture)
+        {
+            list.ScrollIntoView(texture);
+        }
+    }
+
     private void NewTexture(object s, RoutedEventArgs e)
     {
         if (!busy)

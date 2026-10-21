@@ -111,6 +111,69 @@ public class WorkflowTests
         window.Close();
     });
 
+    [Fact]
+    public void VisibleSidebarKeepsSelectionAndScrollsAfterAssignment() => Sta(() =>
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "TileSplitterSidebar-" + Guid.NewGuid());
+        var window = new MainWindow(new AppSettingsStore(Path.Combine(directory, "settings.json")));
+        var vm = (EditorViewModel) window.DataContext;
+
+        void UpdateLayout()
+        {
+            window.UpdateLayout();
+            window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+            window.UpdateLayout();
+        }
+
+        try
+        {
+            var bitmap = BitmapSource.Create(128, 128, 96, 96, PixelFormats.Bgra32, null, new byte[128 * 128 * 4], 512);
+            bitmap.Freeze();
+            var editor = new Editor(DocumentState.Create(128, 128));
+            for (int index = 0; index < 50; index++)
+            {
+                editor.CreateTexture();
+            }
+
+            vm.Open(new("x", bitmap, "", false), editor.State);
+            window.Show();
+            UpdateLayout();
+            var sidebar = FindVisualChild<System.Windows.Controls.ListBox>((DependencyObject) window.Content);
+            var scrollViewer = FindVisualChild<System.Windows.Controls.ScrollViewer>(sidebar);
+            Assert.True(scrollViewer.ScrollableHeight > 0);
+
+            for (int index = 0; index < 2; index++)
+            {
+                scrollViewer.ScrollToTop();
+                UpdateLayout();
+                vm.NewTextureCommand.Execute(null);
+                UpdateLayout();
+
+                Assert.Equal(vm.Selected, sidebar.SelectedItem);
+                var item = Assert.IsType<System.Windows.Controls.ListBoxItem>(sidebar.ItemContainerGenerator.ContainerFromItem(vm.Selected));
+                Assert.True(item.IsSelected);
+                var bounds = item.TransformToAncestor(scrollViewer).TransformBounds(new Rect(item.RenderSize));
+                Assert.True(bounds.Top >= 0);
+                Assert.True(bounds.Bottom <= scrollViewer.ActualHeight);
+
+                vm.Editor!.Assign(vm.SelectedId!.Value, new(index, 0, 1, 1), EditMode.Replace);
+                UpdateLayout();
+                Assert.Equal(vm.Selected, sidebar.SelectedItem);
+                item = Assert.IsType<System.Windows.Controls.ListBoxItem>(sidebar.ItemContainerGenerator.ContainerFromItem(vm.Selected));
+                Assert.True(item.IsSelected);
+            }
+        }
+        finally
+        {
+            vm.Editor?.MarkSaved();
+            window.Close();
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, true);
+            }
+        }
+    });
+
     private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
     {
         for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)

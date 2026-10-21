@@ -203,6 +203,7 @@
                 <ListBox
                     ItemsSource="{Binding Textures}"
                     SelectedItem="{Binding Selected}"
+                    SelectionChanged="TextureSelectionChanged"
                     Margin="0,8"
                     AutomationProperties.Name="Texture list">
                     <ListBox.ItemTemplate>
