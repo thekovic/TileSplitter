@@ -153,7 +153,6 @@ public partial class MainWindow : Window
             state.Validate();
             viewModel.Open(atlas, state);
             Viewport.Fit();
-            OrientationNotice(atlas);
         }
         catch (Exception ex)
         {
@@ -162,14 +161,6 @@ public partial class MainWindow : Window
         finally
         {
             SetBusy(false);
-        }
-    }
-
-    private void OrientationNotice(AtlasImage atlas)
-    {
-        if (atlas.HasOrientation)
-        {
-            MessageBox.Show(this, "Orientation metadata is present. Coordinates refer to the raw decoded pixels; EXIF rotation is not applied.", "Atlas orientation");
         }
     }
 
@@ -394,7 +385,6 @@ public partial class MainWindow : Window
 
             viewModel.Open(atlas, file.Document, dialog.FileName, matches && string.Equals(source, resolved, StringComparison.OrdinalIgnoreCase));
             Viewport.Fit();
-            OrientationNotice(atlas);
         }
         catch (Exception ex)
         {

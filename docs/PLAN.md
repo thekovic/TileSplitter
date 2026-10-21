@@ -40,7 +40,7 @@ Store committed texture regions as integer tile rectangles `(column, row, width,
 
 Changing grid dimensions after assigning textures requires clearing the assignments through an explicit, undoable operation. Opening another atlas creates a different project; do not reinterpret existing rectangles against an unrelated source.
 
-Treat the decoded pixel matrix as authoritative. Do not automatically apply EXIF rotation or DPI-based resizing. If orientation metadata is present, explain that coordinates refer to the raw decoded pixels.
+Treat the decoded pixel matrix as authoritative. Do not automatically apply EXIF rotation or DPI-based resizing.
 
 ## Window and interaction design
 
