@@ -27,10 +27,14 @@ public sealed class ExportDialog : Window
         Margin = new(0, 10, 0, 4)
     };
 
+    private readonly CheckBox errorsOnly = new()
+    {
+        Content = "Show only textures with errors",
+        Margin = new(0, 0, 0, 8)
+    };
     private readonly ListBox list = new()
     {
-        MinHeight = 180,
-        MaxHeight = 300
+        MinHeight = 180
     };
     private readonly TextBlock summary = new()
     {
@@ -55,18 +59,26 @@ public sealed class ExportDialog : Window
         Owner = owner;
         Title = "Export textures";
         Width = 720;
-        SizeToContent = SizeToContent.Height;
+        Height = 800;
+        MinWidth = 560;
+        MinHeight = 720;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         this.atlas = atlas;
         this.state = state;
         this.projectPath = projectPath;
 
-        var panel = new StackPanel
+        var layout = new Grid
         {
             Margin = new(16)
         };
-        Content = panel;
+        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        layout.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Content = layout;
+
+        var panel = new StackPanel();
+        layout.Children.Add(panel);
         panel.Children.Add(new TextBlock { Text = "Output directory (Alt+D)", Margin = new(0, 4, 0, 4) });
         var row = new DockPanel();
         var browse = new Button
@@ -91,16 +103,15 @@ public sealed class ExportDialog : Window
         Add(panel, "Format", format);
         Add(panel, "JPEG quality (1–100)", quality);
         Add(panel, "Opaque background (#RRGGBB)", background);
+
         panel.Children.Add(limitFilenameLength);
-        panel.Children.Add(new TextBlock
-        {
-            Text = "PNG preserves alpha. JPEG is lossy. JPEG and 24-bit BMP flatten alpha onto the background. PNG cannot recover detail lost in a JPG source.",
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new(0, 10, 0, 4)
-        });
+        panel.Children.Add(errorsOnly);
         panel.Children.Add(summary);
-        panel.Children.Add(list);
-        panel.Children.Add(export);
+
+        Grid.SetRow(list, 1);
+        layout.Children.Add(list);
+        Grid.SetRow(export, 2);
+        layout.Children.Add(export);
 
         directory.Text = state.Export.Directory;
         prefix.Text = state.Export.Prefix;
@@ -116,6 +127,8 @@ public sealed class ExportDialog : Window
         format.SelectionChanged += (_, _) => Preview();
         limitFilenameLength.Checked += (_, _) => Preview();
         limitFilenameLength.Unchecked += (_, _) => Preview();
+        errorsOnly.Checked += (_, _) => UpdatePreviewList();
+        errorsOnly.Unchecked += (_, _) => UpdatePreviewList();
         export.Click += (_, _) =>
         {
             try
@@ -161,9 +174,7 @@ public sealed class ExportDialog : Window
                 prefix.Text,
                 limitFilenameLength.IsChecked == true);
             Plan = exporter.Plan(atlas, state with { Export = settings }, projectPath);
-            list.ItemsSource = Plan.Items.Select(item =>
-                $"#{item.Id} {item.Name} · {item.Bounds.Width}×{item.Bounds.Height} → {item.Path}"
-                + $"{(item.Exists ? " [exists]" : "")}{(item.Error is null ? "" : " — ERROR: " + item.Error)}");
+            UpdatePreviewList();
             summary.Text = $"{Plan.Items.Length} files · {Plan.Unassigned} unassigned tiles · {Plan.EmptyDrafts} empty drafts omitted";
             export.IsEnabled = Plan.Items.Length > 0 && Plan.Items.All(item => item.Error is null);
         }
@@ -174,5 +185,14 @@ public sealed class ExportDialog : Window
             summary.Text = ex.Message;
             list.ItemsSource = null;
         }
+    }
+
+    private void UpdatePreviewList()
+    {
+        list.ItemsSource = Plan?.Items
+            .Where(item => errorsOnly.IsChecked != true || item.Error is not null)
+            .Select(item =>
+                $"#{item.Id} {item.Name} · {item.Bounds.Width}×{item.Bounds.Height} → {item.Path}"
+                + $"{(item.Exists ? " [exists]" : "")}{(item.Error is null ? "" : " — ERROR: " + item.Error)}");
     }
 }
