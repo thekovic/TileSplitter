@@ -20,6 +20,16 @@ public sealed class ProjectTests : IDisposable
     }
 
     [Fact]
+    public void FilenameLengthLimitRoundTripsAndDefaultsToOffForOlderProjects()
+    {
+        var settings = new ExportSettings(LimitFilenameLength: true);
+        string json = JsonSerializer.Serialize(settings);
+
+        Assert.Equal(settings, JsonSerializer.Deserialize<ExportSettings>(json));
+        Assert.False(JsonSerializer.Deserialize<ExportSettings>("{}")!.LimitFilenameLength);
+    }
+
+    [Fact]
     public void RoundTripAndChangedOrMissingSource()
     {
         var atlas = Source();

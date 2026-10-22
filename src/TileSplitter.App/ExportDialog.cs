@@ -21,6 +21,11 @@ public sealed class ExportDialog : Window
     private readonly TextBox prefix = new();
     private readonly TextBox quality = new();
     private readonly TextBox background = new();
+    private readonly CheckBox limitFilenameLength = new()
+    {
+        Content = "Limit filenames to 15 characters (including prefix, excluding extension)",
+        Margin = new(0, 10, 0, 4)
+    };
 
     private readonly ListBox list = new()
     {
@@ -86,6 +91,7 @@ public sealed class ExportDialog : Window
         Add(panel, "Format", format);
         Add(panel, "JPEG quality (1–100)", quality);
         Add(panel, "Opaque background (#RRGGBB)", background);
+        panel.Children.Add(limitFilenameLength);
         panel.Children.Add(new TextBlock
         {
             Text = "PNG preserves alpha. JPEG is lossy. JPEG and 24-bit BMP flatten alpha onto the background. PNG cannot recover detail lost in a JPG source.",
@@ -101,12 +107,15 @@ public sealed class ExportDialog : Window
         format.SelectedItem = state.Export.Format;
         quality.Text = state.Export.JpegQuality.ToString();
         background.Text = state.Export.Background;
+        limitFilenameLength.IsChecked = state.Export.LimitFilenameLength;
 
         directory.TextChanged += (_, _) => Preview();
         prefix.TextChanged += (_, _) => Preview();
         quality.TextChanged += (_, _) => Preview();
         background.TextChanged += (_, _) => Preview();
         format.SelectionChanged += (_, _) => Preview();
+        limitFilenameLength.Checked += (_, _) => Preview();
+        limitFilenameLength.Unchecked += (_, _) => Preview();
         export.Click += (_, _) =>
         {
             try
@@ -149,7 +158,8 @@ public sealed class ExportDialog : Window
                 directory.Text,
                 jpegQuality,
                 background.Text,
-                prefix.Text);
+                prefix.Text,
+                limitFilenameLength.IsChecked == true);
             Plan = exporter.Plan(atlas, state with { Export = settings }, projectPath);
             list.ItemsSource = Plan.Items.Select(item =>
                 $"#{item.Id} {item.Name} · {item.Bounds.Width}×{item.Bounds.Height} → {item.Path}"

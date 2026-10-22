@@ -77,6 +77,11 @@ public sealed class ImageExporter : IImageExporter
             var region = texture.Region!.Value;
             string filename = state.Export.Prefix + texture.Name;
             string? error = ExportNames.Error(filename);
+            if (error is null && state.Export.LimitFilenameLength && filename.Length > 15)
+            {
+                error = "Filename must be 15 characters or fewer, including prefix and excluding extension.";
+            }
+
             string path = error is null ? Path.Combine(directory, filename + extension) : "";
             if (duplicates.Contains(texture.Name))
             {

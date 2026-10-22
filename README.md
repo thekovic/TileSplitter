@@ -25,6 +25,8 @@ The SDK is pinned in `global.json` with patch roll-forward. Core has no WPF depe
 
 PNG retains decoded transparency. JPEG is lossy; JPEG and opaque 24-bit BMP flatten transparency onto the selected background. Exporting JPG input to PNG cannot restore lost detail. Editor overlays never enter exports.
 
+The optional **Limit filenames to 15 characters** export checkbox rejects names longer than 15 characters, counting the filename prefix but excluding the extension. It defaults to off and is saved with the project's export settings. When enabled, any overlong name blocks export until corrected or the option is turned off.
+
 Export runs in the background and disables document edits. Cancellation occurs between textures. Each file is finalized independently: completed files remain after cancellation or a later failure. The report lists completed, skipped, failed, and remaining paths. Fix the reported issue and export again to retry.
 
 ## Keyboard shortcuts

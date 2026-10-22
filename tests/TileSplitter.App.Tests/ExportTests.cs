@@ -131,6 +131,45 @@ public sealed class ExportTests : IDisposable
         Assert.NotNull(service.Plan(Fixture(), state, null).Items[0].Error);
     }
 
+    [Theory]
+    [InlineData(14, "", true, true)]
+    [InlineData(15, "", true, true)]
+    [InlineData(16, "", true, false)]
+    [InlineData(16, "", false, true)]
+    [InlineData(11, "tex_", true, true)]
+    [InlineData(12, "tex_", true, false)]
+    public void OptionalFilenameLengthCheckRunsBeforeWriting(
+        int nameLength, string prefix, bool limitFilenameLength, bool accepted)
+    {
+        var service = new ImageExporter();
+        var state = State();
+        state = state with
+        {
+            Textures = [state.Textures[0] with { Name = new string('x', nameLength) }],
+            Export = state.Export with
+            {
+                Prefix = prefix,
+                LimitFilenameLength = limitFilenameLength
+            }
+        };
+
+        var plan = service.Plan(Fixture(), state, null);
+
+        if (accepted)
+        {
+            Assert.Null(plan.Items[0].Error);
+            Assert.Equal("Completed", service.Run(plan, CollisionPolicy.Skip, CancellationToken.None).Items[0].Status);
+            Assert.True(File.Exists(plan.Items[0].Path));
+        }
+        else
+        {
+            Assert.Contains("15 characters", plan.Items[0].Error);
+            Assert.Throws<InvalidDataException>(() => ImageExporter.Preflight(plan));
+            Assert.Equal("Failed", service.Run(plan, CollisionPolicy.Skip, CancellationToken.None).Items[0].Status);
+            Assert.Empty(Directory.GetFiles(dir));
+        }
+    }
+
     [Fact]
     public void FilenameErrorsAndProtectedPaths()
     {

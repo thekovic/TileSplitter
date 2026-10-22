@@ -55,7 +55,8 @@ public sealed record ExportSettings(
     string Directory = "",
     int JpegQuality = 95,
     string Background = "#FFFFFF",
-    string Prefix = "");
+    string Prefix = "",
+    bool LimitFilenameLength = false);
 
 public sealed record DocumentState(
     int PixelWidth,
